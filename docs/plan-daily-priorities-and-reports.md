@@ -103,10 +103,11 @@ date) so it can tell what changed since yesterday and how long something has bee
 - **Read everything once per run, then work out every person's view in memory.** Fetching per person
   takes about a minute each in Plutio; one shared pass over active tasks, recently updated tasks and
   their comments keeps a run to a few minutes.
-- **Claude API** for the one-line explanations, the blocked reasons and the weekly summary. The current
-  Sonnet model (`claude-sonnet-5-5`) for the daily lists; Opus (`claude-opus-5-5`) for the weekly
-  report if the quality needs it. Run the lists as an overnight batch and cache the shared rules to
-  keep the cost down; measure the real cost in the pilot.
+- **Claude API** for the one-line explanations, the blocked reasons and the weekly summary: Claude
+  Opus 5.5 (`claude-opus-5-5`) by default, one short call per person. At about ten calls a day,
+  batching is not worth the wait. If the pilot shows the cost matters, the daily lists can move to
+  Sonnet 5.5 (`claude-sonnet-5-5`); that is Ethan's call. Until EGS's API account exists, the lists
+  use plain rules for the explanations.
 - **Read-only, except posting the notes.** It never comments in Plutio, never emails, never posts in
   client spaces.
 - **No patient information** in any note; a final check drops any line that looks like a patient's
