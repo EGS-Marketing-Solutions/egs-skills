@@ -48,7 +48,7 @@ Yesterday: finished 2, worked on 4, 1 blocked (see the team report).
 1. Something already wrong that a client can see (a broken page, a mistaken post).
 2. A client waiting on a reply from this person, oldest first.
 3. A teammate's question or request to this person in a Plutio comment or Chat, not yet answered.
-4. Overdue tasks that are still active (activity in the last 60 days), by due date.
+4. Overdue tasks that are still active (activity in the last 60 days), the most recently touched first.
 5. Promises this person made in a comment ("I'll check") and has not followed up.
 6. Due in the next three days.
 7. Routines due today from their profile (for example the Monday client updates).
