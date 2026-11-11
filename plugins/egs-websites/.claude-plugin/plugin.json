@@ -1,0 +1,8 @@
+{
+  "name": "egs-websites",
+  "description": "Website builds and revisions for EGS clients.",
+  "version": "1.0.0",
+  "author": {
+    "name": "EGS Marketing Solutions"
+  }
+}

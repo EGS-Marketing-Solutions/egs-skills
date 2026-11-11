@@ -1,0 +1,8 @@
+{
+  "name": "egs-content",
+  "description": "Blogs, newsletters, email and SMS for EGS clients.",
+  "version": "1.0.0",
+  "author": {
+    "name": "EGS Marketing Solutions"
+  }
+}

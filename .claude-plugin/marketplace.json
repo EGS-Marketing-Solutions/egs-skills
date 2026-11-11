@@ -1,0 +1,59 @@
+{
+  "name": "egs",
+  "owner": {
+    "name": "EGS Marketing Solutions"
+  },
+  "description": "EGS Marketing Solutions' Claude skills: egs-core for everyone, plus one plugin per role.",
+  "plugins": [
+    {
+      "name": "egs-core",
+      "source": "./plugins/egs-core",
+      "description": "Everyone at EGS installs this: how EGS works, the team, the daily sweep, tool connections, client updates, copy, reports, meetings to tasks and SOPs, plus read-only readers for Plutio, Google Chat, Search Console, Analytics and PageSpeed."
+    },
+    {
+      "name": "egs-seo",
+      "source": "./plugins/egs-seo",
+      "description": "SEO and AI search for EGS clients."
+    },
+    {
+      "name": "egs-social",
+      "source": "./plugins/egs-social",
+      "description": "Social media and short video for EGS clients."
+    },
+    {
+      "name": "egs-content",
+      "source": "./plugins/egs-content",
+      "description": "Blogs, newsletters, email and SMS for EGS clients."
+    },
+    {
+      "name": "egs-websites",
+      "source": "./plugins/egs-websites",
+      "description": "Website builds and revisions for EGS clients."
+    },
+    {
+      "name": "egs-account-manager",
+      "source": "./plugins/egs-account-manager",
+      "description": "Account management for EGS clients."
+    },
+    {
+      "name": "egs-amplify",
+      "source": "./plugins/egs-amplify",
+      "description": "Building in Amplify DPC for EGS practices."
+    },
+    {
+      "name": "egs-project-manager",
+      "source": "./plugins/egs-project-manager",
+      "description": "Keeping EGS's Plutio board true."
+    },
+    {
+      "name": "egs-owner",
+      "source": "./plugins/egs-owner",
+      "description": "The owner's view across EGS."
+    },
+    {
+      "name": "egs-ads",
+      "source": "./plugins/egs-ads",
+      "description": "Paid ads for EGS clients, with health ad rules. Works on its own, for the ads partner too."
+    }
+  ]
+}

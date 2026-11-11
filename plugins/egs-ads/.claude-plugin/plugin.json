@@ -1,0 +1,8 @@
+{
+  "name": "egs-ads",
+  "description": "Paid ads for EGS clients, with health ad rules. Works on its own, for the ads partner too.",
+  "version": "1.0.0",
+  "author": {
+    "name": "EGS Marketing Solutions"
+  }
+}

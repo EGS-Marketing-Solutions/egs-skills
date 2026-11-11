@@ -1,0 +1,8 @@
+{
+  "name": "egs-account-manager",
+  "description": "Account management for EGS clients.",
+  "version": "1.0.0",
+  "author": {
+    "name": "EGS Marketing Solutions"
+  }
+}

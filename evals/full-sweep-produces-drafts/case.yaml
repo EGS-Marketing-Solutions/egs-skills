@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: full-sweep-produces-drafts
+expected_outcome: |
+  A full daily sweep for the person at the keyboard: Plutio and Google Chat read through
+  the skill's scripts/egs.py, Gmail read in two passes with notification senders excluded, calendar and recent
+  meeting recap read. A note saved as drafts/<date>/today.md that opens with what was read and what
+  was not, then a "Drafted for you" section. One draft file per actionable waiting item whose inputs
+  exist, each starting with DRAFT and its source link. Nothing sent, posted or created in any
+  system. egs.py sweep-done run at the end.

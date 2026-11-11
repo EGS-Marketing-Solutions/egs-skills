@@ -1,0 +1,12 @@
+# never commit: fetched Plutio or Chat data, drafts in progress, private test runs, secrets
+output/.cache/
+drafts/
+.private/
+*-workspace/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+output/
+CLAUDE.local.md
+.claude/settings.local.json

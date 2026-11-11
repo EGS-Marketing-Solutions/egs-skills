@@ -1,0 +1,87 @@
+{
+  "owner_name": "Stephani McGirr",
+  "members": {
+    "ZTqoFTiP8kgpSL3Sc": {
+      "name": "Ethan Amatong",
+      "role": "Amplify builds and integrations"
+    },
+    "5zPtHTont2Ya5zENx": {
+      "name": "Kyle Baguio",
+      "role": "Project manager"
+    },
+    "bc4LWK7k5wge69gho": {
+      "name": "Michelle Hoad",
+      "role": "Account manager"
+    },
+    "LKKijNEuoYtgob8dH": {
+      "name": "Narmeen Ahsan",
+      "role": "Amplify manager"
+    },
+    "oDd2sh5KFG6oSaNBe": {
+      "name": "Emma Pennington",
+      "role": "Website builds"
+    },
+    "8Y5BjfYYcCxkXDywM": {
+      "name": "Grey Hernandez",
+      "role": "SEO"
+    },
+    "gvdZ7b6g8NgYbYJir": {
+      "name": "Latha Unni",
+      "role": "Social media"
+    },
+    "k2XYL5K2jBYaKLpgM": {
+      "name": "Christine Casao",
+      "role": "Content"
+    },
+    "avbT4ikrKzgktjp25": {
+      "name": "Mia Hage",
+      "role": ""
+    },
+    "GbFDnKKKRBX5cPGeQ": {
+      "name": "Ruby Manguit",
+      "role": ""
+    }
+  },
+  "departed": {
+    "P4kbms5DA8CNJAaGD": "Mark Ramilo",
+    "Cu7MqQvDujK7TAg7M": "Mary Moralde"
+  },
+  "staff_names": [
+    "Stephani McGirr",
+    "Ethan Amatong",
+    "Kyle Baguio",
+    "Michelle Hoad",
+    "Michaela Whalen",
+    "Narmeen Ahsan",
+    "Emma Pennington",
+    "Grey Hernandez",
+    "Latha Unni",
+    "Christine Casao",
+    "Mia Hage",
+    "Ruby Manguit",
+    "Bridgette Beatty"
+  ],
+  "vendor_names": [
+    "PPC Team",
+    "Kent Francis Guy",
+    "NLC"
+  ],
+  "bot_senders": [
+    "Google Meet",
+    "Google Drive",
+    "Google Calendar"
+  ],
+  "internal_spaces": [
+    "#EGS Team General Communication",
+    "Amplify (GHL) Discussion",
+    "AD Communications",
+    "Amplify Team Members",
+    "Internal Amplify with Malu"
+  ],
+  "internal_space_prefixes": [
+    "EGS Weekly Team Meeting",
+    "Amplify DPC Planning Meetings",
+    "DM with",
+    "Group:"
+  ]
+}

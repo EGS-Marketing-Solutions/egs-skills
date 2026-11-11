@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: catch-me-up-mixed-connectors
+expected_outcome: |
+  A short "Today for Ethan" note built from the connectors that exist (Gmail, Fathom, Drive),
+  which states up front that Plutio and Google Chat were not checked, judges each email thread by
+  its last message rather than unread state, lists the person's action items from the latest
+  recorded meetings, links every thread and file, and writes the drafts it can, listing them in the note,
+  without sending or modifying anything.
