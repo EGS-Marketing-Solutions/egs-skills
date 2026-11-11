@@ -32,53 +32,22 @@ import argparse, datetime as dt, json, os, re, stat, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from egslib import config, plutio  # noqa: E402
+from egslib import config, plutio, sweep  # noqa: E402
+# The rules for what is waiting on a person live in egslib/sweep.py, shared with EGS's morning-updates service.
+from egslib.sweep import (NOW, ACK, ACK_START, ASK, PROMISE, clean, days_ago, is_ack, is_ask,  # noqa: E402,F401
+                          mentions_name, parse, person_id, thread_facts)
 
-NOW = dt.datetime.now(dt.timezone.utc)
 LOCAL = dt.datetime.now().astimezone()
 
 
 def local_line():
     off = LOCAL.strftime("%z")
     return f"Local time: {LOCAL.strftime('%a %d %b %Y, %H:%M')} (UTC{off[:3]}:{off[3:]})"
-# A short acknowledgement closes a loop; it is not a request.
-ACK = re.compile(r"^(ok(ay)?|thanks?( you)?|ty|noted|got it|perfect|great|sounds good|will do|done|nice)\W*$", re.I)
-ACK_START = re.compile(r"^(ok(ay)?|sure|noted|will do|on it|got it|thanks?|thank you|sounds good|perfect)\b", re.I)
-
-
-ASK = re.compile(r"\?|\b(please|can you|could you|would you|can we|need (you|your|a|the)|let me know|waiting (on|for) you|your turn|for you to|kindly)\b", re.I)
-PROMISE = re.compile(r"\b(i'?ll|i will|let me (check|look|see|find)|will (follow up|look into|check|send|get back)|look into it|get back to you)\b", re.I)
-
-
-def is_ask(text):
-    return bool(ASK.search(text or ""))
-
-
-def is_ack(text):
-    t = clean(text, 400)
-    return bool(ACK.match(t)) or (len(t) < 100 and "?" not in t and bool(ACK_START.match(t)))
-
-
-def parse(s):
-    if not s:
-        return None
-    try:
-        return dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
-    except ValueError:
-        return None
 
 
 def local(d, fmt="%d %b %H:%M"):
     """A timestamp shown in this computer's time zone (the offset is in the Local time line)."""
     return d.astimezone().strftime(fmt) if d else ""
-
-
-def days_ago(d):
-    return (NOW - d).days if d else None
-
-
-def clean(text, n=220):
-    return re.sub(r"\s+", " ", text or "").strip()[:n]
 
 
 def need_me():
@@ -176,130 +145,29 @@ def cmd_google_auth(a):
 
 # ------------------------------------------------------------------ plutio
 
-def person_id(people, name):
-    exact = [k for k, v in people.items() if v.strip().lower() == name.strip().lower()]
-    if len(exact) == 1:
-        return exact[0]
-    first = [k for k, v in people.items() if v.split(" ")[0].lower() == name.split(" ")[0].lower()]
-    return first[0] if len(first) == 1 else None
-
-
-def thread_facts(t, cs, people, me_id, me_name, window):
-    """What a task's thread says about the person: is the ball theirs, and why."""
-    last = cs[-1] if cs else None
-    last_at = parse(last.get("createdAt")) if last else None
-    stamps = [d for d in [parse(t.get("updatedAt")), last_at] if d]
-    act = max(stamps) if stamps else None
-    asks, fyis = [], []
-    for i, c in enumerate(cs):
-        at = parse(c.get("createdAt"))
-        if not at or days_ago(at) > window or c.get("createdBy") == me_id:
-            continue
-        if mentions_name(c.get("bodyPlain") or "", me_name) and not any(x.get("createdBy") == me_id for x in cs[i + 1:]):
-            answers_me = i > 0 and cs[i - 1].get("createdBy") == me_id and "?" not in (c.get("bodyPlain") or "")
-            (fyis if answers_me else asks).append(c)
-    waiting, reason = bool(asks), ("mentioned you" if asks else "")
-    if not waiting and fyis:
-        reason = "answered you (no question)"
-    if not waiting and last and last.get("createdBy") != me_id and last_at and days_ago(last_at) <= min(window, 14) \
-            and me_id in (t.get("assignedTo") or []):
-        body = last.get("bodyPlain") or ""
-        names_in = [n for n in set(people.values()) if n and mentions_name(body, n)]
-        if not names_in and not is_ack(body):
-            if is_ask(body):
-                waiting, reason = True, "someone asked something on your task"
-            else:
-                reason = "update on your task, nothing asked"
-    src = asks[-1] if asks else (fyis[-1] if fyis else last)
-    promise = None
-    if last and last.get("createdBy") == me_id and last_at and 3 <= days_ago(last_at) <= window \
-            and PROMISE.search(last.get("bodyPlain") or ""):
-        promise = {"at": last_at, "text": clean(last.get("bodyPlain"), 400)}
-    due = parse(t.get("dueDate"))
-    return {
-        "id": t["_id"], "title": clean(t.get("title"), 160), "url": plutio.task_url(t) if t.get("projectId") else None,
-        "where": plutio.board_path(t), "assignees": [people.get(x, x) for x in t.get("assignedTo") or []],
-        "due": due, "overdue_days": days_ago(due) if due and due < NOW else 0,
-        "due_in_days": (due - NOW).days if due and due >= NOW else None,
-        "last_activity": act, "quiet_days": days_ago(act), "waiting_on_me": waiting, "why": reason,
-        "said_by": people.get(src.get("createdBy"), src.get("createdBy")) if src else None,
-        "said_at": parse(src.get("createdAt")) if src else None,
-        "said": clean(src.get("bodyPlain"), 600) if src else "", "comments": len(cs),
-        "fyi": (bool(fyis) and not asks) or reason == "update on your task, nothing asked", "promise": promise,
-        "assignee_ids": t.get("assignedTo") or [],
-        "description": clean(t.get("descriptionPlain"), 400),
-    }
-
-
 def cmd_plutio_sweep(a):
     me_name = a.me or need_me()
     people = plutio.people()
     me_id = person_id(people, me_name)
     if not me_id:
         raise SystemExit(f"'{me_name}' is not in Plutio's people list. Use your name exactly as Plutio shows it.")
-    mine = {t["_id"]: t for t in plutio.active_tasks_for(me_id)}
-    since = (NOW - dt.timedelta(days=a.days)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    updated = plutio.updated_since(since)
-    recent = {t["_id"]: t for t in updated if t.get("commentsCount")}
-    # Work nobody is assigned to but this person carries: tasks they follow (a tracker's subtasks list
-    # their creator as follower), and unassigned tasks in their own group or a board they watch.
-    first = me_name.split(" ")[0].lower()
-    watched = [w.lower() for w in config.watch()]
-    def in_my_area(t):
-        groups = [b.get("title", "").lower() for b in t.get("breadcrumb") or [] if b.get("entityType") == "task-group"]
-        path = plutio.board_path(t).lower()
-        return any(g.startswith(first + " ") for g in groups) or any(w in path for w in watched)
-    week = (NOW + dt.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    pool = {t["_id"]: t for t in plutio.followed_tasks_for(me_id) + updated + plutio.due_between(NOW.strftime("%Y-%m-%dT%H:%M:%S.000Z"), week)}
-    unassigned = sorted([t for t in pool.values() if not t.get("assignedTo") and t["_id"] not in mine
-                         and (me_id in (t.get("followers") or []) or in_my_area(t))],
-                        key=lambda t: (t.get("dueDate") or "9999", t.get("title") or ""))
-    want = [tid for tid, t in mine.items() if t.get("commentsCount")] + [tid for tid in recent if tid not in mine]
-    threads = plutio.comments_many(want)
-    rows = []
-    for tid in set(mine) | set(recent):
-        t = mine.get(tid) or recent[tid]
-        f = thread_facts(t, threads.get(tid, []), people, me_id, me_name, a.days)
-        f["assigned_to_me"] = tid in mine
-        if f["assigned_to_me"] or f["waiting_on_me"]:
-            rows.append(f)
-    waiting = sorted([r for r in rows if r["waiting_on_me"]], key=lambda r: r["said_at"] or NOW)
-    due = sorted([r for r in rows if r["assigned_to_me"] and r["due_in_days"] is not None and r["due_in_days"] <= 3],
-                 key=lambda r: r["due_in_days"])
-    overdue = sorted([r for r in rows if r["assigned_to_me"] and r["overdue_days"] and (r["quiet_days"] or 999) < 60
-                      and not r["waiting_on_me"]], key=lambda r: -r["overdue_days"])
-    quiet = sorted([r for r in rows if r["assigned_to_me"] and r["quiet_days"] is not None and 30 <= r["quiet_days"] < 90],
-                   key=lambda r: -r["quiet_days"])
-    dead = [r for r in rows if r["assigned_to_me"] and (r["quiet_days"] or 0) >= 90]
-    promises = sorted([r for r in rows if r.get("promise")], key=lambda r: r["promise"]["at"])
-    departed = set(config.team().get("departed", {}))
-    # yours alone now: every other assignee has left
-    left_behind = [r for r in rows if r["assigned_to_me"] and departed & set(r["assignee_ids"])
-                   and set(r["assignee_ids"]) - departed == {me_id}]
-    un_rows = []
-    for t in unassigned:
-        due_t = parse(t.get("dueDate"))
-        parent = (t.get("parentTaskId") and pool.get(t["parentTaskId"], {}).get("title")) or ""
-        un_rows.append({"id": t["_id"], "title": clean(t.get("title"), 160), "where": plutio.board_path(t) + (f" > {clean(parent, 60)}" if parent else ""),
-                        "url": plutio.task_url(t) if t.get("projectId") else None, "due": due_t,
-                        "subtasks": len(t.get("subTasks") or []), "parent": clean(parent, 80)})
-    soon_cut = NOW + dt.timedelta(days=14)
-    un_soon = [r for r in un_rows if r["due"] and r["due"] <= soon_cut]
+    data = sweep.fetch([me_id], a.days, people=people)
+    out = sweep.person_view(data, me_id, me_name, a.days, watch=config.watch(),
+                            departed=config.team().get("departed", {}))
+    if a.json:
+        return print_json(out)
+    waiting, promises, due = out["waiting_on_me"], out["promises_not_followed_up"], out["due_next_3_days"]
+    overdue, quiet, left_behind = out["overdue_still_active"], out["quiet_30_to_90_days"], out["shared_with_people_who_left"]
+    un_rows, fyi = out["unassigned_in_my_area"], out["answers_and_updates"]
+    un_soon = sweep.unassigned_due_soon(out)
     un_groups = {}
     for r in un_rows:
         if r in un_soon:
             continue
-        key = r["parent"] or r["where"]
-        un_groups.setdefault(key, []).append(r)
-    out = {"person": me_name, "window_days": a.days, "assigned_active": len(mine), "waiting_on_me": waiting,
-           "promises_not_followed_up": promises, "due_next_3_days": due, "overdue_still_active": overdue,
-           "unassigned_in_my_area": un_rows, "shared_with_people_who_left": left_behind,
-           "quiet_30_to_90_days": quiet, "untouched_90_plus_days": len(dead)}
-    if a.json:
-        return print_json(out)
+        un_groups.setdefault(r["parent"] or r["where"], []).append(r)
     print(f"# Plutio for {me_name}, {NOW.strftime('%d %b %Y')}")
     print(local_line())
-    print(f"{len(mine)} active tasks assigned to you. Mentions read for the last {a.days} days.\n")
+    print(f"{out['assigned_active']} active tasks assigned to you. Mentions read for the last {a.days} days.\n")
 
     def line(r, extra=""):
         link = f"[{r['title']}]({r['url']})" if r["url"] else f"{r['title']} (no project, no link)"
@@ -312,7 +180,6 @@ def cmd_plutio_sweep(a):
         if len(items) > cap:
             print(f"- and {len(items) - cap} more: run again with --all to list every one")
     cap = 10_000 if a.all else 25
-    fyi = [r for r in rows if r.get("fyi")]
     block("Waiting on you", waiting, lambda r: f". {r['said_by']}, {local(r['said_at'], '%d %b')} ({days_ago(r['said_at'])} days): \"{r['said']}\" [{r['why']}]", cap)
     block("Promises you made, not yet followed up", promises, lambda r: f". You, {local(r['promise']['at'], '%d %b')} ({days_ago(r['promise']['at'])} days): \"{r['promise']['text']}\"", cap)
     block("Answers and updates on your tasks, nothing asked", fyi, lambda r: f". {r['said_by']}, {local(r['said_at'], '%d %b')}: \"{r['said']}\"", cap)
@@ -335,7 +202,7 @@ def cmd_plutio_sweep(a):
                 print(f"  - {r['title']} ({key}) id {r['id']}")
     block("Shared with people who have left (yours alone now?)", left_behind, lambda r: f", with {', '.join(r['assignees'])}", cap)
     block("Gone quiet, 30 to 90 days", quiet, lambda r: f", quiet {r['quiet_days']} days", cap)
-    print(f"\n{len(dead)} more tasks assigned to you have had no activity for 90+ days; not listed.")
+    print(f"\n{out['untouched_90_plus_days']} more tasks assigned to you have had no activity for 90+ days; not listed.")
     print("Before acting on any item, search for a sibling task for the same job (egs.py plutio search): one job often has two tasks.")
 
 

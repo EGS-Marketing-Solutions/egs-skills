@@ -1,7 +1,7 @@
 {
   "name": "egs-core",
   "description": "Everyone at EGS installs this: how EGS works, the team, the daily sweep, tool connections, client updates, copy, reports, meetings to tasks and SOPs, plus read-only readers for Plutio, Google Chat, Search Console, Analytics and PageSpeed.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": {
     "name": "EGS Marketing Solutions"
   }

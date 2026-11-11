@@ -48,7 +48,7 @@ Yesterday: finished 2, worked on 4, 1 blocked (see the team report).
 1. Something already wrong that a client can see (a broken page, a mistaken post).
 2. A client waiting on a reply from this person, oldest first.
 3. A teammate's question or request to this person in a Plutio comment or Chat, not yet answered.
-4. Overdue tasks that are still active (activity in the last 60 days), by due date.
+4. Overdue tasks that are still active (activity in the last 60 days), the most recently touched first.
 5. Promises this person made in a comment ("I'll check") and has not followed up.
 6. Due in the next three days.
 7. Routines due today from their profile (for example the Monday client updates).
@@ -103,10 +103,11 @@ date) so it can tell what changed since yesterday and how long something has bee
 - **Read everything once per run, then work out every person's view in memory.** Fetching per person
   takes about a minute each in Plutio; one shared pass over active tasks, recently updated tasks and
   their comments keeps a run to a few minutes.
-- **Claude API** for the one-line explanations, the blocked reasons and the weekly summary. The current
-  Sonnet model (`claude-sonnet-5-5`) for the daily lists; Opus (`claude-opus-5-5`) for the weekly
-  report if the quality needs it. Run the lists as an overnight batch and cache the shared rules to
-  keep the cost down; measure the real cost in the pilot.
+- **Claude API** for the one-line explanations, the blocked reasons and the weekly summary: Claude
+  Opus 5.5 (`claude-opus-5-5`) by default, one short call per person. At about ten calls a day,
+  batching is not worth the wait. If the pilot shows the cost matters, the daily lists can move to
+  Sonnet 5.5 (`claude-sonnet-5-5`); that is Ethan's call. Until EGS's API account exists, the lists
+  use plain rules for the explanations.
 - **Read-only, except posting the notes.** It never comments in Plutio, never emails, never posts in
   client spaces.
 - **No patient information** in any note; a final check drops any line that looks like a patient's
