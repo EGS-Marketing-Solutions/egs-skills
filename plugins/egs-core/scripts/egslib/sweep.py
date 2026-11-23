@@ -73,7 +73,8 @@ def thread_facts(t, cs, people, me_id, me_name, window):
             continue
         if mentions_name(c.get("bodyPlain") or "", me_name) and not any(x.get("createdBy") == me_id for x in cs[i + 1:]):
             answers_me = i > 0 and cs[i - 1].get("createdBy") == me_id and "?" not in (c.get("bodyPlain") or "")
-            (fyis if answers_me else asks).append(c)
+            thanks_only = is_ack(c.get("bodyPlain") or "")  # "Thank you!! @Kyle" mentions him but asks nothing
+            (fyis if answers_me or thanks_only else asks).append(c)
     waiting, reason = bool(asks), ("mentioned you" if asks else "")
     if not waiting and fyis:
         reason = "answered you (no question)"
